@@ -3,18 +3,7 @@
 let url; //这里是一个默认的url，可以没有
 let misurl;
 switch (process.env.NODE_ENV) {
-    case 'development':
-        url = "http://172.16.168.8:8089/api" //这里是本地的请求url
-        misurl = "http://112.124.108.219:7500/SIMUWebServerTest"
-        break
-    case 'test': // 注意这里的名字要和步骤二中设置的环境名字对应起来
-        url = "http://172.16.168.9:8090/api" //这里是测试环境中的url
-        misurl = "http://112.124.108.219:7500/SIMUWebServerTest"
-        break
-    case 'production':
-        url = "https://route.hosjoy.com/api" //生产环境url
-        misurl = "http://112.124.108.219:7500/SIMUWebServer"
-        break
+   
 }
 export const OPENAPIHOST = url;
 export const misHost = misurl;
