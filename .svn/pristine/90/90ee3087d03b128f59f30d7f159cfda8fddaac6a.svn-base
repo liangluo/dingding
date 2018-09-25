@@ -1,0 +1,23 @@
+//export const OPENAPIHOST = 'http://172.16.168.8:8089/api';
+//配置变量
+let url; //这里是一个默认的url，可以没有
+let misurl;
+switch (process.env.NODE_ENV) {
+    case 'development':
+        url = "http://172.16.168.8:8089/api" //这里是本地的请求url
+        misurl = "http://112.124.108.219:7500/SIMUWebServerTest"
+        break
+    case 'test': // 注意这里的名字要和步骤二中设置的环境名字对应起来
+        url = "http://172.16.168.8:8090/api" //这里是测试环境中的url
+        misurl = "http://112.124.108.219:7500/SIMUWebServerTest"
+        break
+    case 'production':
+        url = "https://www.cnblogs.com/XHappyness/p/7686267.html" //生产环境url
+        misurl = "http://112.124.108.219:7500/SIMUWebServer"
+        break
+}
+export const OPENAPIHOST = url;
+export const misHost = misurl;
+export const HASCONSOLE = typeof console !== undefined;
+// export const ISBROWSER = typeof window !== 'undefined' && typeof window === 'object';
+// export const UA = ISBROWSER && window.navigator.userAgent.toLowerCase();

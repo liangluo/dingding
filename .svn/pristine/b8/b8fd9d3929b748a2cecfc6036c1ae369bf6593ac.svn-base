@@ -1,0 +1,624 @@
+
+<template>
+  <div>
+    <mt-header title="注资/增资审批"></mt-header>
+    <!-- <mt-field label="标题：" placeholder="输入标题" v-model="title"></mt-field> -->
+    <mt-field label="申请人：" placeholder="" v-model="applicantName" readonly=""></mt-field>
+    <mt-field label="申请部门：" placeholder="申请人所在部门" @click.native.capture="chooseD" v-model="deptName" readonly="" state="warning" class="reValid"></mt-field>
+    <mt-cell title="申请时间：">
+      <myDatepicker :date="sqtime" :option="multiOption" :limit="limit" v-model="applyDate"></myDatepicker>
+    </mt-cell>
+    <mt-cell title="资金类型：">
+      <select type="select" v-model="type" @change="changetype">
+        <option value="zhuzi">注资申请及支付</option>
+        <option value="zengzi">增资申请及支付</option>
+      </select>
+    </mt-cell>
+    <div class="page-part" v-if="type=='zhuzi'">
+      <h3>注资申请</h3>
+      <mt-field label="注资单位：" placeholder="注资单位" v-model="companyName" state="warning" class="reValid" readonly="" @click.native.capture="searchCom"></mt-field>
+      <mt-field label="注资单位编码：" placeholder="注资单位编码" state="warning" v-model="companyCode" class="reValid" readonly="" ></mt-field>
+      <mt-field label="签约规模(元)：" placeholder="签约规模" type="number" :attr="{maxlength:13}" v-model="signSize" state="warning" class="reValid" @input.native.capture="oninput"></mt-field>
+      <mt-field label="注资金额(元)：" placeholder="注资金额" type="number"  v-model="pourValue" readonly="" state="warning" class="reValid"></mt-field>
+      <mt-field label="申请注资金额(元)：" placeholder="申请注资金额" type="number" :attr="{maxlength:13}" state="warning" class="reValid" v-model="applyValue" @input.native.capture="oninput"></mt-field>
+      <mt-field label="已注资金额(元)：" placeholder="已注资金额" type="number" readonly="" v-model="donePourValue"></mt-field>
+      <!-- <mt-field label="上线时间：" placeholder="上线时间"  type="Date"></mt-field> -->
+      <mt-cell title="上线时间：">
+        <myDatepicker :date="sxtime" :option="multiOption" :limit="limit" v-model="onlineDate"></myDatepicker>
+      </mt-cell>
+      <!-- <mt-field label="申请注资月份：" placeholder="申请注资月份"  type="Date"></mt-field> -->
+      <mt-cell title="申请注资月份：">
+        <myDatepicker :date="sqzxtime" :option="onlyOption" :limit="limit" v-model="applyMonth"></myDatepicker>
+      </mt-cell>
+      <mt-field label="累计签约指标(含税/元)：" placeholder="累计签约指标" type="number" :attr="{maxlength:13}" state="warning" class="reValid" v-model="signTargetValue" @input.native.capture="oninput"></mt-field>
+      <mt-field label="累计责任状指标(含税/元)：" placeholder="累计责任状指标" type="number" :attr="{maxlength:13}" state="warning" class="reValid" v-model="dutyTargetValue" @input.native.capture="oninput"></mt-field>
+      <mt-field label="实际达成(含税/元)：" placeholder="实际达成" type="number" state="number" :attr="{maxlength:13}" class="reValid" v-model="reachValue" @input.native.capture="oninput"></mt-field>
+      <mt-cell title="资金计划月份：">
+        <select type="select" v-model="planMonth">
+          <option value="">选择月份</option>
+          <option v-for="(item,index) in monthList" :key="index" :value="item.key">{{item.value}}</option>
+        </select>
+      </mt-cell>
+      <mt-field label="备注：" placeholder="备注" type="textarea" rows="4" v-model="remark"></mt-field>
+      <!-- <mt-cell title="上传图片：" is-link @click.native.capture="uploadFile">
+        <span style="color: green" v-text="imgarrlength"></span>
+      </mt-cell> -->
+      <mt-field label="上传图片：" placeholder="上传图片" type="number" @click.native.capture="uploadFile" readonly="" v-model="imgarrlength"></mt-field>
+
+    </div>
+
+    <div class="page-part" v-if="type=='zengzi'">
+      <h3>增资申请</h3>
+      <mt-field label="增资单位：" placeholder="增资单位" state="warning" class="reValid" v-model="capitalIncrease" readonly="" @click.native.capture="searchCom"></mt-field>
+      <mt-field label="增资单位编码：" placeholder="增资单位编码" state="warning" class="reValid" v-model="increaseCode" readonly="" ></mt-field>
+      <mt-field label="增资金额(元)：" placeholder="增资金额" type="number" :attr="{maxlength:13}" state="warning" class="reValid" v-model="increaseAmount" @input.native.capture="oninput"></mt-field>
+      <mt-field label="已注资金额(元)：" placeholder="请输入数字" type="number" readonly="" v-model="amountInjected" state="warning" class="reValid"></mt-field>
+      <mt-cell title="上线时间：">
+        <myDatepicker :date="sxxtime" :option="multiOption" :limit="limit" v-model="onlineDate"></myDatepicker>
+      </mt-cell>
+      <mt-cell title="申请增资月份：">
+        <myDatepicker :date="sqzxxtime" :option="onlyOption" :limit="limit" v-model="increaseMonth"></myDatepicker>
+      </mt-cell>
+      <mt-field label="累计签约指标(含税/元)：" placeholder="累计签约指标" type="number"  :attr="{maxlength:13}" state="warning" class="reValid" v-model="signTargetValue" @input.native.capture="oninput"></mt-field>
+      <mt-field label="累计责任状指标(含税/元)：" placeholder="累计责任状指标" type="number" :attr="{maxlength:13}" state="warning" class="reValid" v-model="dutyTargetValue" @input.native.capture="oninput"></mt-field>
+      <mt-field label="增资后签约指标(元)：" placeholder="增资后签约指标" type="number" :attr="{maxlength:13}" state="warning" class="reValid" v-model="signTargetIncreaseValue" @input.native.capture="oninput"></mt-field>
+      <mt-field label="实际达成(含税/元)：" placeholder="实际达成" type="number" :attr="{maxlength:13}" state="warning" class="reValid" v-model="actualDeal" @input.native.capture="oninput"></mt-field>
+      <mt-cell title="资金计划月份：">
+        <select type="select" v-model="fundingMonth">
+          <option value="">选择月份</option>
+          <option v-for="(item,index) in monthList" :key="index" :value="item.key">{{item.value}}</option>
+        </select>
+      </mt-cell>
+      <mt-field label="备注：" placeholder="备注" type="textarea" rows="4" v-model="remark"></mt-field>
+      <!-- <mt-cell title="上传图片：" is-link @click.native.capture="uploadFile">
+        <span style="color: green" v-text="imgarrlength"></span>
+      </mt-cell> -->
+      <mt-field label="上传图片：" placeholder="上传图片" type="number" @click.native.capture="uploadFile" readonly="" v-model="imgarrlength"></mt-field>
+
+    </div>
+    <div class="page-part">
+      <mt-button type="primary" size="large" @click="submit" :disabled="isDisable">提交</mt-button>
+    </div>
+  </div>
+</template>
+
+
+<script>
+import { injsApiOAuth } from "../../../lib/util";
+import timeOption from "../components/timeOption.vue";
+import myDatepicker from "vue-datepicker/vue-datepicker.vue";
+import { OPENAPIHOST, misHost } from "../../../lib/env.js";
+import dingWISDK from "../../../lib/ding-web.js";
+
+export default {
+  name: "inject",
+  //props: ["injectMetas"],
+  components: {
+    myDatepicker
+  },
+  data: function() {
+    return {
+      isDisable:false,
+      destroy: "",
+      cominf: "",
+      injectMetas: "", //缓存数据
+      zzmoney: "", //统一变量
+      zztime: "",
+      applicantId: "", //当前userID
+      deptId: "", //部门id
+      title: "",
+      applicantName: "", //申请人姓名
+      applyMonth: "", //申请月份
+      applyValue: "", //申请金额
+      deptName: "", //部门名称
+      companyName: "",
+      companyCode: "",
+      donePourValue: "", //已完成注资金额
+      dutyTargetValue: "", //责任金额
+      onlineDate: "", //上线时间
+      planMonth: "", //计划月份
+      reachValue: "", //达成金额
+      signSize: "", //签约规模
+      signTargetValue: "", //累计签约
+      remark: "", //备注
+      monthList: [],
+      imageUrls: "", //图片arry
+      imgarr: [],
+      imgarrlength: "",
+      type: "zhuzi", //类型
+      applyDate: "", //申请时间
+
+      actualDeal: "",
+      amountInjected: "",
+      capitalIncrease: "",
+      fundingMonth: "",
+      increaseAmount: "",
+      increaseCode: "",
+      increaseMonth: "",
+      signTargetIncreaseValue: "",
+      signTargetValue: "",
+      sqtime: {
+        time: ""
+      },
+      sxtime: {
+        time: ""
+      },
+      sxxtime: {
+        time: ""
+      },
+      sqzxtime: {
+        time: ""
+      },
+      sqzxxtime: {
+        time: ""
+      },
+      multiOption: {
+        type: "day",
+        week: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"],
+        month: [
+          "1月",
+          "2月",
+          "3月",
+          "4月",
+          "5月",
+          "6月",
+          "7月",
+          "8月",
+          "9月",
+          "10月",
+          "11月",
+          "12月"
+        ],
+        format: "YYYY-MM-DD",
+        inputStyle: {
+          display: "inline-block",
+          padding: "6px",
+          "line-height": "20px",
+          width: "160px",
+          "font-size": "16px",
+          border: "1px solid #ccc",
+          // "box-shadow": "0 1px 3px 0 rgba(0, 0, 0, 0.2)",
+          "border-radius": "2px",
+          color: "#5F5F5F",
+          margin: "0"
+        },
+        color: {
+          // 字体颜色
+          header: "#35acff", // 头部
+          headerText: "#fff" // 头部文案
+        },
+        buttons: {
+          // button 文案
+          clearTime: "清除",
+          ok: "确定",
+          cancel: "取消"
+        },
+        placeholder: "请选时间",
+        dismissible: true
+      },
+      onlyOption: {
+        type: "day",
+        week: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"],
+        month: [
+          "1月",
+          "2月",
+          "3月",
+          "4月",
+          "5月",
+          "6月",
+          "7月",
+          "8月",
+          "9月",
+          "10月",
+          "11月",
+          "12月"
+        ],
+        format: "YYYY-MM",
+        inputStyle: {
+          display: "inline-block",
+          padding: "6px",
+          "line-height": "20px",
+          width: "160px",
+          "font-size": "16px",
+          border: "1px solid #ccc",
+          // "box-shadow": "0 1px 3px 0 rgba(0, 0, 0, 0.2)",
+          "border-radius": "2px",
+          color: "#5F5F5F",
+          margin: "0"
+        },
+        color: {
+          // 字体颜色
+          header: "#35acff", // 头部
+          headerText: "#fff" // 头部文案
+        },
+        buttons: {
+          // button 文案
+          clearTime: "清除",
+          ok: "确定",
+          cancel: "取消"
+        },
+        placeholder: "请选月份",
+        dismissible: true
+      },
+      limit: [
+        {
+          type: "weekday",
+          available: [1, 2, 3, 4, 5, 6, 0]
+        },
+        {
+          type: "fromto",
+          from: "2010-01-01",
+          to: "2520-01-01"
+        }
+      ]
+    };
+  },
+  created() {
+ 
+    injsApiOAuth(); //刷新授权
+    this.injectMetas = JSON.parse(sessionStorage.getItem("userInfo"));
+     if(!this.injectMetas){
+      this.ddAlert('钉钉未授权')
+    }
+  },
+
+  activated() {
+    this.cominf = JSON.parse(sessionStorage.getItem("cominf"));
+    if (this.cominf) {
+      if (this.type == "zhuzi") {
+        this.companyName = this.cominf.KJDWMC;
+        this.companyCode = this.cominf.KJDWID;
+        //函数返回值 赋值到多个变量上
+        this.getmoneyTotal(this.companyCode);
+
+        this.getsxTime(this.companyCode);
+      } else {
+        this.capitalIncrease = this.cominf.KJDWMC;
+        this.increaseCode = this.cominf.KJDWID;
+        //函数返回值 赋值到多个变量上
+        this.getmoneyTotal(this.increaseCode);
+
+        this.getsxTime(this.increaseCode);
+      }
+    }
+  },
+
+  mounted() {
+    this.applicantName = this.injectMetas.name;
+    this.cropid = this.injectMetas.corpId;
+    this.applicantId = this.injectMetas.userid; //userid
+    if (!this.cropid) {
+      this.ddAlert("获取登录人失败");
+    }
+
+    for (var i = 1; i < 13; i++) {
+      this.monthList.push({ key: i, value: i + "月" });
+    }
+  },
+  watch: {
+    "$route"(to, from) {
+      // 对路由变化作出响应...
+      if (from.path == "/") {
+        //this.$router.go(0)
+       window.location.reload()
+        // window.location.reload();
+      }
+    },
+    "zzmoney": function(value) {},
+    "zztime": function() {
+      
+    }
+  },
+  computed: {
+    // 计算属性的 getter
+    pourValue: {
+      get: function() {
+        return (this.signSize * 0.06).toFixed(2);
+      },
+      set: function() {}
+      // `this` 指向 vm 实例
+    }
+  },
+  methods: {
+    changetype() {
+      this.remark = "";
+      this.imgarr = [];
+      this.imgarrlength = "";
+      this.signTargetValue = "";
+      this.dutyTargetValue = "";
+    },
+    oninput(e) {
+      // 通过正则过滤小数点后两位
+       e.target.value = e.target.value.match(/^\d*(\.?\d{0,2})/g)[0] || null
+       e.target.value = (e.target.value).slice(0,13);
+    },
+    //选择部门
+    chooseD() {
+      var _this = this;
+      dd.biz.contact.departmentsPicker({
+        title: "选择部门", //标题
+        corpId: this.cropid, //企业的corpId
+        multiple: false, //是否多选
+        limitTips: "超出了", //超过限定人数返回提示
+        maxDepartments: 100, //最大选择部门数量
+        appId: "", //微应用的Id
+        onSuccess: function(result) {
+          const departments = result.departments;
+          _this.deptName = departments[0].name;
+          _this.deptId = departments[0].id;
+        },
+        onFail: function(err) {
+          _this.ddAlert(err);
+        }
+      });
+    },
+    //上传文件
+    uploadFile() {
+      var _this = this;
+      if (_this.imgarr.length < 9) {
+        dd.biz.util.uploadImage({
+          compression: true, //(是否压缩，默认为true压缩)
+          multiple: false, //是否多选，默认false
+          max: 3, //最多可选个数
+          quality: 50, // 图片压缩质量,
+          resize: 50, // 图片缩放率
+          stickers: {},
+          onSuccess: function(result) {
+            _this.ddAlert("上传成功");
+            _this.imgarr.push(result[0]);
+            _this.imgarrlength = _this.imgarr.length;
+            //onSuccess将在图片上传成功之后调用
+            /*
+        [
+          'http://gtms03.alicdn.com/tps/i3/TB1VF6uGFXXXXalaXXXmh5R_VXX-237-236.png'
+        ]
+        */
+          },
+          onFail: function(err) {}
+        });
+      } else {
+        _this.ddAlert("最大上传数9张");
+      }
+    },
+    //搜索
+    searchCom() {
+      this.$router.push({ path: "/search" });
+    },
+    //获取以投资金额
+    getmoneyTotal(code) {
+      var _this = this;
+      var getcode = {
+        url: OPENAPIHOST + "/httpH5/15106",
+        params: {
+          companyCode: code
+        }
+      };
+      dingWISDK
+        .publicSub(getcode)
+        .then(response => {
+          if (response.data.code == 200) {
+            _this.zzmoney = response.data.data.sumValue;
+            if (this.type == "zhuzi") {
+              this.donePourValue = _this.zzmoney;
+            } else {
+              this.amountInjected = _this.zzmoney;
+            }
+          }
+        })
+        .catch(err => {
+          _this.ddAlert(err);
+        });
+    },
+    //获取上线时间
+    getsxTime(KJDWID) {
+      var _this = this;
+      const data = {
+        mimeType: "json",
+        misUrl: misHost + "/ERPService/simuerp.asmx/GetKJDWXX",
+        KJDWID: KJDWID
+      };
+      const misCom = {
+        url: OPENAPIHOST + "/http/15109",
+        data: JSON.stringify(data),
+        method: "post",
+        headers: { "Content-Type": "application/json" }
+      };
+      dingWISDK
+        .publicSub(misCom)
+        .then(response => {
+          if (response.data.code == 200) {
+            if(response.data.data){
+              _this.zztime = response.data.data[0].SXRQ;
+                if (this.type == "zhuzi") {
+                _this.sxtime.time = _this.zztime.split(" ")[0];
+              } else {
+                _this.sxxtime.time = _this.zztime.split(" ")[0];
+              }
+            }
+          }else{
+              console.log()
+               if (this.type == "zhuzi") {
+                _this.sxtime.time = "";
+              } else {
+                _this.sxxtime.time = "";
+              }
+               console.log(1,_this.sxtime.time)
+            }
+        })
+        .catch(err => {
+          _this.ddAlert(err);
+        });
+    },
+    //提交
+    submit() {
+      
+      var _this = this;
+     
+      var zhuziRequest;
+      if (_this.formVaild()) {
+        if (_this.type == "zhuzi") {
+          //注资post
+          zhuziRequest = {
+            url: OPENAPIHOST + "/httpH5/15105",
+            data: {
+              applicantId: _this.applicantId,
+              applicantName: _this.applicantName,
+              applyDate: _this.sqtime.time,
+              applyMonth: _this.sqzxtime.time,
+              applyValue: _this.applyValue,
+              companyCode: _this.companyCode,
+              companyName: _this.companyName,
+              deptId: _this.deptId,
+              deptName: _this.deptName,
+              donePourValue: _this.donePourValue,
+              dutyTargetValue: _this.dutyTargetValue,
+              onlineDate: _this.sxtime.time,
+              planMonth: _this.planMonth,
+              pourValue: _this.pourValue,
+              reachValue: _this.reachValue,
+              remark: _this.remark,
+              signSize: _this.signSize,
+              signTargetValue: _this.signTargetValue,
+              title: _this.title,
+              imageUrls: _this.imgarr.join(",")
+            },
+            method: "post"
+          };
+        } else {
+          //注资post
+          zhuziRequest = {
+            url: OPENAPIHOST + "/httpH5/15108",
+            data: {
+              applicantId: _this.applicantId,
+              applicantName: _this.applicantName,
+              applyDate: _this.sqtime.time,
+
+              actualDeal: _this.actualDeal,
+              amountInjected: _this.amountInjected,
+              deptId: _this.deptId,
+              deptName: _this.deptName,
+              capitalIncrease: _this.capitalIncrease,
+              dutyTargetValue: _this.dutyTargetValue,
+              increaseAmount: _this.increaseAmount,
+              fundingMonth: _this.fundingMonth,
+              increaseCode: _this.increaseCode,
+              increaseMonth: _this.sqzxxtime.time,
+              onlineDate: _this.sxxtime.time,
+              remark: _this.remark,
+              signTargetIncreaseValue: _this.signTargetIncreaseValue,
+              signTargetValue: _this.signTargetValue,
+              title: _this.title,
+              imageUrls: _this.imgarr.join(",")
+            },
+            method: "post"
+          };
+        }
+          _this.isDisable = true;
+        dingWISDK
+          .publicSub(zhuziRequest)
+          .then(response => {
+            if (response.data.code == 200) {
+              _this.ddAlert("提交成功");
+              _this.isDisable = false;
+              _this.$router.push({ path: "/" });
+              sessionStorage.removeItem("cominf");
+              sessionStorage.removeItem("Cusinf");
+            } else {
+              _this.ddAlert(response.data.message);
+              _this.isDisable = false;
+            }
+          })
+          .catch(err => {
+            _this.ddAlert(err);
+            _this.isDisable = false;
+          });
+      }
+    },
+    ddAlert(msg) {
+      dd.device.notification.alert({
+        message: msg,
+        title: "提示", //可传空
+        buttonName: "确定",
+        onSuccess: function() {
+          //onSuccess将在点击button之后回调
+          /*回调*/
+        },
+        onFail: function(err) {}
+      });
+    },
+    formVaild() {
+      var lis = document.getElementsByClassName("reValid");
+      for (var i = 0; i < lis.length; i++) {
+        let inputV = lis[i].getElementsByClassName("mint-field-core");
+        if (!inputV[0].value) {
+          this.ddAlert(inputV[0].placeholder + "必填");
+          return false;
+          break;
+        }
+      }
+      return true;
+    }
+  }
+};
+</script>
+
+<style>
+@media screen and (min-width: 600px) {
+  .mint-cell .mint-cell-title {
+    width: 180px !important;
+  }
+}
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+input {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  background: transparent !important;
+  appearance: button;
+  　-moz-appearance: button; /* Firefox */
+  　-webkit-appearance: button; /* Safari 和 Chrome */
+}
+select {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  background: transparent !important;
+}
+.form_zhuzi {
+  margin-top: 10px;
+}
+select {
+  border-radius: 2px;
+  display: block;
+  width: 100%;
+  padding: 3px;
+  font-size: 1.0625rem;
+  line-height: normal;
+  color: #222;
+
+  border: 1px solid #ccc;
+  padding-right: 1.625rem;
+}
+.mint-cell .mint-cell-value {
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  color: inherit;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+.mint-cell .mint-cell-title {
+  width: 105px;
+  -webkit-box-flex: 0;
+  -ms-flex: none;
+  flex: none;
+}
+
+.page-part {
+  margin-top: 10px;
+}
+.page-part h3 {
+  font-weight: 400;
+  padding-left: 10px;
+}
+</style>

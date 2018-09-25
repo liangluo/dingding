@@ -1,0 +1,437 @@
+
+<template>
+  <div>
+    
+    <mt-header title="应收账款"></mt-header>
+    <mt-field label="申请单位：" placeholder="申请单位" v-model="companyName" state="warning" class="reValid" readonly="" @click.native.capture="searchCom"></mt-field>
+    <mt-field label="申请人：" placeholder="申请人" v-model="applicantName" state="warning" class="reValid" readonly=""></mt-field>
+    <mt-field label="申请部门：" placeholder="选择部门" @click.native.capture="chooseD" v-model="deptName" readonly="" state="warning" class="reValid"></mt-field>
+    <!-- <mt-field label="申请时间：" placeholder="申请时间"  type="Date"></mt-field> -->
+    <!-- <mt-field  label="申请部门：" placeholder="选择部门" @click.native.capture="chooseV" v-model="chooseDname" readonly=""></mt-field> -->
+    <mt-cell title="申请时间：">
+      <myDatepicker :date="sqtime" :option="multiOption" :limit="limit" v-model="applyDate"></myDatepicker>
+    </mt-cell>
+    <mt-field label="申请单位编码：" placeholder="申请单位编码" readonly="" v-model="companyCode"></mt-field>
+    <!-- <div class="admin-edit" v-on:click="openAdmin">编辑分组</div> -->
+
+    <mt-field label="销售规模(元)：" placeholder="销售规模" type="text" :attr="{maxlength:13}" state="warning" v-model="saleSize" @input.native.capture="oninput"  class="reValid"></mt-field>
+    <mt-field label="应收规模(元)：" placeholder="应收规模" type="number" state="warning" v-model="targetSize" readonly="" class="reValid"></mt-field>
+      <mt-field label="客户名称：" placeholder="客户名称" v-model="customerName" @click.native.capture="searchCus"  state="warning" class="reValid"></mt-field>
+    <mt-field label="客户编码：" placeholder="客户编码" v-model="customerCode" readonly=""  state="warning" class="reValid"></mt-field>
+  
+    <mt-field label="前期应收金额(元)：" placeholder="前期应收金额" type="text" :attr="{maxlength:13}" v-model="earlyRemain" @input.native.capture="oninput"  state="warning" class="reValid"></mt-field>
+    <mt-field label="应收金额(元)：" placeholder="应收金额" type="text" :attr="{maxlength:13}" v-model="targetValue" @input.native.capture="oninput"></mt-field>
+    <mt-cell title="归还期限：">
+      <myDatepicker :date="sxtime" :option="multiOption" :limit="limit" v-model="returnDate"></myDatepicker>
+    </mt-cell>
+    <mt-field label="本期应收账款余额(元)：" placeholder="本期应收账款余额" type="number" v-model="currentRemain" readonly=""></mt-field>
+    <mt-field label="应收余额合计(元)：" placeholder="应收账款余额" type="number" readonly=""  v-model="sumRemain"></mt-field>
+    <!-- <mt-field label="上线时间：" placeholder="上线时间"  type="Date"></mt-field> -->
+    <mt-field label="备注：" placeholder="备注" type="textarea" rows="4" v-model="remark"></mt-field>
+    <!-- <mt-cell title="销售合同上传：" is-link @click.native.capture="uploadFile" >
+      <span style="color: green" v-text="imgarrlength"></span>
+    </mt-cell> -->
+    <!-- <mt-field label="申请注资月份：" placeholder="申请注资月份"  type="Date"></mt-field> -->
+<mt-field label="销售合同上传：" placeholder="销售合同上传" type="text" :attr="{maxlength:13}" @click.native.capture="uploadFile" readonly="" v-model="imgarrlength"  state="warning" class="reValid"><span ></span></mt-field>
+    <mt-field label="上年度销售(元)：" placeholder="上年度销售" type="text" :attr="{maxlength:13}" v-model="lastSale" @input.native.capture="oninput"></mt-field>
+    <mt-field label="上年度利润(元)：" placeholder="上年度利润" type="text" :attr="{maxlength:13}" v-model="lastProfit" @input.native.capture="oninput"></mt-field>
+    <mt-field label="当年销售(元)：" placeholder="当年销售" type="text" :attr="{maxlength:13}" v-model="thisSale" @input.native.capture="oninput"></mt-field>
+    <mt-field label="当年利润(元)：" placeholder="当年利润" type="text" :attr="{maxlength:13}" v-model="thisProfit" @input.native.capture="oninput"></mt-field>
+
+    <div class="page-part">
+      <mt-button type="primary" size="large" @click="submit">提交</mt-button>
+    </div>
+  </div>
+</template>
+
+
+<script>
+import { injsApiOAuth } from "../../../lib/util";
+import timeOption from "../components/timeOption.vue";
+import myDatepicker from "vue-datepicker/vue-datepicker.vue";
+import { OPENAPIHOST,misHost } from "../../../lib/env.js";
+import dingWISDK from "../../../lib/ding-web.js";
+export default {
+  name: "account",
+  components: {
+    myDatepicker
+  },
+  data: function() {
+    return {
+      cominf: "",
+      cusinf:'',
+      zzmoney: "",
+      injectMetas: "",
+      applicantId: "", //钉钉号
+      applicantName: "", //姓名
+      applyDate: "", //申请日期yyyy-MM-dd
+      companyCode: "",
+      companyName: "",
+      currentRemain: 0, //本期应收账款余额 MIS获取
+      customerCode: "", //..客户code mis
+      customerName: "", //客户name
+      deptId: "", //申请人所在根部门id 钉钉
+      deptName: "",
+      earlyRemain: 0, //..
+      imageUrls: "",
+      lastProfit: "", //去年利润
+      lastSale: "", //去年销售额
+      remark: "",
+      returnDate: "",
+      saleSize: "",
+      // sumRemain: 0, //应收余额合计 前期应收余额+本期应收账款余额
+      //  targetSize: "",
+      targetValue: "",
+      thisProfit: "",
+      thisSale: "", //今年度销售
+      monthList: [],
+      imgarr: [],
+      imgarrlength: '',
+      sqtime: "",
+      sxtime: "",
+
+      sqtime: {
+        time: ""
+      },
+      sxtime: {
+        time: ""
+      },
+
+      multiOption: {
+        type: "day",
+        week: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"],
+        month: [
+          "1月",
+          "2月",
+          "3月",
+          "4月",
+          "5月",
+          "6月",
+          "7月",
+          "8月",
+          "9月",
+          "10月",
+          "11月",
+          "12月"
+        ],
+        format: "YYYY-MM-DD",
+        inputStyle: {
+          display: "inline-block",
+          padding: "6px",
+          "line-height": "20px",
+          width: "160px",
+          "font-size": "16px",
+          border: "1px solid #ccc",
+          // "box-shadow": "0 1px 3px 0 rgba(0, 0, 0, 0.2)",
+          "border-radius": "2px",
+          color: "#5F5F5F",
+          margin: "0"
+        },
+        color: {
+          // 字体颜色
+          header: "#35acff", // 头部
+          headerText: "#fff" // 头部文案
+        },
+        buttons: {
+          // button 文案
+          clearTime: "清除",
+          ok: "确定",
+          cancel: "取消"
+        },
+        placeholder: "请选时间",
+        dismissible: true
+      },
+      limit: [
+        {
+          type: "weekday",
+          available: [1, 2, 3, 4, 5, 6, 0]
+        },
+        {
+          type: "fromto",
+          from: "2010-01-01",
+          to: "2520-01-01"
+        }
+      ]
+    };
+  },
+  created() {
+    injsApiOAuth(); //刷新授权
+    this.injectMetas = JSON.parse(sessionStorage.getItem("userInfo"));
+    if(!this.injectMetas){
+      this.ddAlert('钉钉未授权')
+    }
+  },
+  activated() {
+    this.cominf = JSON.parse(sessionStorage.getItem("cominf"));
+    if (this.cominf) {
+      this.companyName = this.cominf.KJDWMC;
+      this.companyCode = this.cominf.KJDWID;
+      //函数返回值 赋值到多个变量上
+      this.getmoneyTotal(this.companyCode);
+    }
+    this.cusinf = JSON.parse(sessionStorage.getItem("Cusinf"));
+    if(this.cusinf){
+      this.customerName = this.cusinf.KHMC;
+      this.customerCode = this.cusinf.KHID;
+    }
+  },
+
+  watch: {
+    "$route"(to, from) {
+      // 对路由变化作出响应...
+      if (from.path == "/") {
+        this.$router.go(0)
+        // window.location.reload();
+      }
+    },
+    "zzmoney": function() {
+      this.currentRemain = parseFloat(this.zzmoney).toFixed(2);
+    }
+  },
+  mounted() {
+    this.applicantName = this.injectMetas.name;
+    this.cropid = this.injectMetas.corpId;
+    this.applicantId = this.injectMetas.userid; //userid
+   
+    
+    for (var i = 1; i < 13; i++) {
+      this.monthList.push({ key: i, value: i + "月" });
+    }
+  },
+  computed: {
+    // 计算属性的 getter
+    sumRemain: {
+      get: function() {
+        return (parseFloat(this.earlyRemain) + parseFloat(this.currentRemain)).toFixed(2);
+      },
+      set: function() {}
+      // `this` 指向 vm 实例
+    },
+    targetSize: {
+      get: function() {
+        return (parseFloat(this.saleSize) * 0.1).toFixed(2);
+      },
+      set: function() {}
+    }
+  },
+  methods: {
+    oninput(e) {
+      // 通过正则过滤小数点后两位
+      e.target.value = e.target.value.match(/^\d*(\.?\d{0,2})/g)[0] || null;
+    },
+    //选择部门
+    chooseD() {
+      var _this = this;
+      dd.biz.contact.departmentsPicker({
+        title: "选择部门", //标题
+        corpId: this.cropid, //企业的corpId
+        multiple: false, //是否多选
+        limitTips: "超出了", //超过限定人数返回提示
+        maxDepartments: 100, //最大选择部门数量
+        appId: "", //微应用的Id
+        onSuccess: function(result) {
+          const departments = result.departments;
+          _this.deptName = departments[0].name;
+          _this.deptId = departments[0].id;
+        },
+        onFail: function(err) {
+          _this.ddAlert(err);
+        }
+      });
+    },
+    //上传文件
+    uploadFile() {
+      var _this = this;
+      if (_this.imgarr.length < 9) {
+        dd.biz.util.uploadImage({
+          compression: true, //(是否压缩，默认为true压缩)
+          multiple: false, //是否多选，默认false
+          max: 3, //最多可选个数
+          quality: 50, // 图片压缩质量,
+          resize: 50, // 图片缩放率
+          stickers: {},
+          onSuccess: function(result) {
+            _this.ddAlert("上传成功");
+            _this.imgarr.push(result[0]);
+            _this.imgarrlength = _this.imgarr.length;
+          },
+          onFail: function(err) {}
+        });
+      } else {
+        _this.ddAlert("最大上传数9张");
+      }
+    },
+
+    //搜索
+    searchCom() {
+      this.$router.push({ path: "/search" });
+    },
+      searchCus() {
+      this.$router.push({ path: "/searchcus" });
+    },
+    //获取以投资金额
+    getmoneyTotal(KJDWID) {
+      var _this = this;
+
+      var _this = this;
+      const data = {
+        mimeType: "json",
+        misUrl: misHost + "/ERPService/simuerp.asmx/GetKJDWYSZK",
+        KJDWID: KJDWID
+      };
+      const misCom = {
+        url: OPENAPIHOST + "/http/15109",
+        data: JSON.stringify(data),
+        method: "post",
+        headers: { "Content-Type": "application/json" }
+      };
+      dingWISDK
+        .publicSub(misCom)
+        .then(response => {
+         
+          if (response.data.code == 200) {
+            _this.zzmoney = response.data.data[0].YSZKJE;  
+          }else{
+             _this.zzmoney = 0;
+          }
+        })
+        .catch(err => {
+          _this.ddAlert(err);
+        });
+    },
+
+    //提交
+    submit() {
+      var _this = this;
+      if (_this.formVaild()) {
+        //收款post
+        const skRequest = {
+          url: OPENAPIHOST + "/httpH5/15107",
+          data: {
+            applicantId: _this.applicantId,
+            applicantName: _this.applicantName,
+            applyDate: _this.sqtime.time,
+            companyCode: _this.companyCode,
+            companyName: _this.companyName,
+            currentRemain: _this.currentRemain,
+            customerCode: _this.customerCode,
+            customerName: _this.customerName,
+            deptId: _this.deptId,
+            deptName: _this.deptName,
+            earlyRemain: _this.earlyRemain,
+            lastProfit: _this.lastProfit,
+            lastSale: _this.lastSale,
+            returnDate: _this.sxtime.time,
+            saleSize: _this.saleSize,
+            remark: _this.remark,
+            sumRemain: _this.sumRemain,
+            targetSize: _this.targetSize,
+            targetValue: _this.targetValue,
+            thisProfit: _this.thisProfit,
+            thisSale: _this.thisSale,
+            imageUrls: _this.imgarr.join(",")
+          },
+          method: "post"
+        };
+        dingWISDK
+          .publicSub(skRequest)
+          .then(response => {
+            if (response.data.code == 200) {
+              _this.ddAlert("提交成功");
+              _this.$router.push({ path: "/" });
+              sessionStorage.removeItem('cominf')
+              sessionStorage.removeItem('Cusinf')
+            } else {
+              _this.ddAlert(response.data.message);
+            }
+          })
+          .catch(err => {
+            _this.ddAlert(err);
+          });
+      }
+    },
+    ddAlert(msg) {
+      dd.device.notification.alert({
+        message: msg,
+        title: "提示", //可传空
+        buttonName: "确定",
+        onSuccess: function() {
+          //onSuccess将在点击button之后回调
+          /*回调*/
+        },
+        onFail: function(err) {}
+      });
+    },
+    formVaild() {
+      var lis = document.getElementsByClassName("reValid");
+      for (var i = 0; i < lis.length; i++) {
+        let inputV = lis[i].getElementsByClassName("mint-field-core");
+        console.log(inputV[0].value)
+        if (!inputV[0].value) {
+          this.ddAlert(inputV[0].placeholder + "必填");
+          return false;
+          break;
+        }
+      }
+      return true;
+    }
+  }
+};
+</script>
+
+<style>
+@media screen and (min-width: 600px) {
+  .mint-cell .mint-cell-title {
+    width: 180px !important;
+  }
+}
+input {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  background: transparent !important;
+  appearance: button;
+  　-moz-appearance: button; /* Firefox */
+  　-webkit-appearance: button; /* Safari 和 Chrome */
+}
+select {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  background: transparent !important;
+}
+.form_zhuzi {
+  margin-top: 10px;
+}
+select {
+  border-radius: 2px;
+  display: block;
+  width: 100%;
+  padding: 3px;
+  font-size: 1.0625rem;
+  line-height: normal;
+  color: #222;
+
+  border: 1px solid #ccc;
+  padding-right: 1.625rem;
+}
+.mint-cell .mint-cell-value {
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  color: inherit;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+.mint-cell .mint-cell-title {
+  width: 105px;
+  -webkit-box-flex: 0;
+  -ms-flex: none;
+  flex: none;
+}
+
+.page-part {
+  margin-top: 10px;
+}
+.page-part h3 {
+  font-weight: 400;
+  padding-left: 10px;
+}
+</style>

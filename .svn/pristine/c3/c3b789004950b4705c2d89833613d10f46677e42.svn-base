@@ -1,0 +1,16 @@
+<template>
+  <div id="app-container">
+    <router-view></router-view>
+  </div>
+</template>
+<script>
+export default {
+  name: 'app'
+}
+</script>
+
+<style lang="less">
+@media screen and (min-width:600px){
+
+}
+</style>

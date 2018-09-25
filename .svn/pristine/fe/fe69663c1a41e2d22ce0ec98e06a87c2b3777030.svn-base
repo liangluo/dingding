@@ -1,0 +1,72 @@
+<template>
+    <div class="grid">
+        <div class="cell">
+            <div class="cell-box">
+                <div class="cell-image-container">
+                    <router-link to="injection">
+                        <img class="cell-image" src="https://landray.dingtalkapps.com/alid/app/report/images/ico-png/25.png" alt="">
+                    </router-link>
+                </div>
+                <div class="cell-text">注资/增资</div>
+            </div>
+        </div>
+        <div class="cell">
+            <div class="cell-box">
+                <div class="cell-image-container">
+                    <router-link to="account">
+                        <img class="cell-image" src="https://landray.dingtalkapps.com/alid/app/report/images/ico-png/25.png" alt="">
+                    </router-link>
+                </div>
+                <div class="cell-text">应收款</div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+export default {
+    name:'',
+    props: ["userinfo"],
+    data(){
+        return{
+
+        }
+    },
+    created () {
+        console.log(this.userinfo)
+    }
+}
+</script>
+<style>
+.grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.cell {
+  width: 25%;
+  position: relative;
+  margin-bottom: 20px;
+}
+.cell-image-container {
+  width: 50px;
+  height: 49px;
+  position: relative;
+  border-radius: 10px;
+  background-color: #f8f8f8;
+  overflow: hidden;
+  margin: 0 auto;
+}
+.cell-image {
+  width: 50px;
+  height: 49px;
+  border-radius: 10px;
+}
+.cell-text {
+  text-align: center;
+  color: #323334;
+  font-size: 13px;
+  margin-top: 12px;
+}
+</style>
+

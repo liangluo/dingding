@@ -1,0 +1,88 @@
+import logger from './logger';
+
+export function authCode(corpId) {
+  return new Promise(function (resolve, reject) {
+    console.log('获取 code')
+    dd.ready(function () {
+      if (DingTalkPC.ua.isDesktop && DingTalkPC.ua.isInDingTalk) { //PC端钉钉执行此方法}
+        // dd.device.notification.confirm({
+        //   message: "你爱我吗",
+        //   title: "提示",
+        //   buttonLabels: ['爱', '不爱'],
+        //   onSuccess : function(result) {
+
+        //   },
+        //   onFail : function(err) {}
+        //   });
+        // DingTalkPC.runtime.permission.requestAuthCode({
+        //   corpId: corpId, //企业ID
+        //   onSuccess: function(result) {
+        //     resolve(result);
+        //     console.log(JSON.stringify(result))
+
+        //   },
+        //   onFail : function(err) {
+
+        //   }
+        // })
+
+        DingTalkPC.biz.user.get({
+          onSuccess: function (info) {
+            resolve(info);
+          },
+          onFail: function (err) {
+            console.log(err)
+          }
+        });
+
+
+      } else {
+        //移动端
+        // dd.runtime.permission.requestAuthCode({
+        //     corpId: corpId,
+        //     onSuccess: function(result) {
+        //     {
+        //       resolve(result);
+        //     }
+        //     },
+        //     onFail : function(err) {
+        //       console.log(err)
+        //     }
+
+        // });
+
+
+        dd.biz.user.get({        
+          corpId: corpId, // 可选参数，如果不传则使用用户当前企业的corpId。
+          onSuccess: function (info) {   
+              resolve(info);         
+            },
+            onFail: function (err) {            
+              logger.e('userGet fail: ' + JSON.stringify(err));        
+            }    
+          });
+      }
+    });
+
+    //   DingTalkPC.runtime.permission.requestAuthCode({
+    //     corpId: corpId, //企业ID
+    //     onSuccess: function(result) {
+    //       resolve(result);
+
+    //     },
+    //     onFail : function(err) {
+    //       console.log(err)
+    //     }
+    // })
+
+
+  });
+}
+
+export function isObject(obj) {
+  return obj !== null && typeof obj === 'object'
+}
+
+export function msgLog(opt) {
+  wpo.log('DING WEB INTERFACE SDK API' + opt.url, 1);
+}

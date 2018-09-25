@@ -1,0 +1,116 @@
+<template>
+  <div class="app-container">
+    <applist :bannerMetas='bannerMetas' v-if="bannerMetas"></applist>
+  </div>
+</template>
+<script>
+import { injsApiOAuth } from "../../lib/util";
+import { OPENAPIHOST } from "../../lib/env.js";
+import dingWISDK from "../../lib/ding-web.js";
+import injection from './components/injection.vue';
+import applist from "./components/applist.vue";
+export default {
+  name: "home",
+  components: {
+    applist: applist
+  },
+  data: function() {
+    return {
+      openAppManager: false,
+      corpId: "",
+      userId: "",
+      code: "",
+      bannerMetas: {},
+      envType:1,//公司类型
+      agentid:"184767536"
+    };
+  },
+  beforeRouteLeave(to, from, next) {
+    to.meta.keepAlive = true;
+    next();
+  },
+  mounted: function() {
+    const self = this;
+    // this.corpId = parseCorpId(originalUrl, 'corpId');
+    //监听code的变化，如果有变化，立即获取用户信息
+    this.$watch("code", function() {
+      this.getUserInfo();
+    });
+
+    const signRequest = {
+      url: OPENAPIHOST + "/httpH5/15102",
+      params: {
+        url: location.href,
+        agentid:self.agentid ,
+        envType:self.envType
+      }
+    };
+
+    // js-api 权限校验
+    dingWISDK
+      .jsApiOAuth(signRequest)
+      .then(function(response) {
+        // 获取开放的全部应用
+        self.corpId = response.data.corpId;
+        // 走免登的流程 corpId 获取临时code
+
+        self.getUserId();
+      })
+      .catch(function(error) {
+        alert("JS API 权限校验失败 error : " + JSON.stringify(error));
+      });
+  },
+  watch: {
+   
+  },
+  methods: {
+    getUserId: function() {
+      // 获取userid
+      const self = this;
+      const getUserIdRequest = {};
+      dingWISDK
+        .getUserId(getUserIdRequest, this.corpId)
+        .then(function(response) {
+          self.code = response.code;
+        })
+        .catch(function(error) {
+          alert("获取code error ：" + JSON.stringify(error));
+        });
+    },
+    getUserInfo: function() {
+      var self = this;
+      // 根据userid获取用户详细信息
+      const getUserInfoRequest = {
+        url: OPENAPIHOST + "/httpH5/15104",
+        params: {
+          code: self.code,
+          envType:self.envType
+        }
+      };
+
+      dingWISDK
+        .getUserInfo(getUserInfoRequest)
+        .then(function(response) {
+          if (response.data.code == 200) {
+            self.bannerMetas = response.data.data;
+            self.bannerMetas.corpId = self.corpId;
+          } else {
+            alert(JSON.stringify(response.data.message));
+          }
+        })
+        .catch(function(error) {
+          alert("获取用户信息 error：" + JSON.stringify(error));
+        });
+    }
+
+  }
+};
+</script>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style>
+.app-container {
+  width: 100%;
+  height: 100%;
+}
+</style>

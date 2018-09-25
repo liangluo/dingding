@@ -1,0 +1,14 @@
+import axios from '../config/http';
+//post  data
+//get   params
+
+
+//登录接口
+export function login(data) {
+    return axios({
+        url: '/httpH5/15102',
+        method: 'get',
+        params: data
+    })
+}
+

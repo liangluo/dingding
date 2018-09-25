@@ -1,0 +1,303 @@
+
+<template>
+  <div>
+    <mt-header title="应收账款"></mt-header>
+    <mt-field label="申请单位：" placeholder="申请单位" v-model="title" state="warning" class="reValid"></mt-field>
+    <mt-field label="申请人：" placeholder="申请人" v-model="username" state="warning" class="reValid" readonly="" ></mt-field>
+    <mt-field label="申请部门：" placeholder="选择部门" @click.native.capture="chooseD" v-model="chooseDname" readonly="" state="warning" class="reValid"></mt-field>
+    <!-- <mt-field label="申请时间：" placeholder="申请时间"  type="Date"></mt-field> -->
+    <!-- <mt-field  label="申请部门：" placeholder="选择部门" @click.native.capture="chooseV" v-model="chooseDname" readonly=""></mt-field> -->
+    <mt-cell title="申请时间：">
+      <myDatepicker :date="sqtime" :option="multiOption" :limit="limit" v-model="sqtime"></myDatepicker>
+    </mt-cell>
+    <mt-field label="申请单位编码：" placeholder="申请单位编码" v-model="zxbm"></mt-field>
+    <!-- <div class="admin-edit" v-on:click="openAdmin">编辑分组</div> -->
+
+    <mt-field label="销售规模：" placeholder="销售规模" type="number" state="warning" v-model="zxbm" class="reValid"></mt-field>
+    <mt-field label="应收规模：" placeholder="应收规模" type="number" state="warning" v-model="zxbm" class="reValid"></mt-field>
+    <mt-field label="客户编码：" placeholder="客户编码"></mt-field>
+    <mt-field label="客户名称：" placeholder="客户名称"></mt-field>
+    <mt-field label="前期应收金额：" placeholder="前期应收金额" type="number"></mt-field>
+    <mt-field label="应收金额：" placeholder="应收金额" type="number"></mt-field>
+    <mt-cell title="归还期限：">
+      <myDatepicker :date="sqtime" :option="multiOption" :limit="limit" v-model="sqtime"></myDatepicker>
+    </mt-cell>
+    <mt-field label="应收账款发生额：" placeholder="应收账款发生额" type="number"></mt-field>
+    <mt-field label="应收账款余额：" placeholder="应收账款余额" type="number"></mt-field>
+    <!-- <mt-field label="上线时间：" placeholder="上线时间"  type="Date"></mt-field> -->
+    <mt-field label="备注：" placeholder="备注" type="textarea" rows="4"></mt-field>
+    <mt-cell title="销售合同上传：" is-link @click.native.capture="uploadFile">
+      <span style="color: green">只能图片</span>
+    </mt-cell>
+    <!-- <mt-field label="申请注资月份：" placeholder="申请注资月份"  type="Date"></mt-field> -->
+
+    <mt-field label="上年度销售：" placeholder="上年度销售" type="number"></mt-field>
+    <mt-field label="上年度利润：" placeholder="上年度利润" type="number"></mt-field>
+    <mt-field label="当年销售：" placeholder="当年销售" type="number"></mt-field>
+    <mt-field label="当年利润：" placeholder="当年利润" type="number"></mt-field>
+
+    <div class="page-part">
+      <mt-button type="primary" size="large" @click="submit">提交</mt-button>
+    </div>
+  </div>
+</template>
+
+
+<script>
+import timeOption from "../components/timeOption.vue";
+import myDatepicker from "vue-datepicker/vue-datepicker.vue";
+import { OPENAPIHOST } from "../../../lib/env.js";
+import dingWISDK from "../../../lib/ding-web.js";
+export default {
+  name: "account",
+  components: {
+    myDatepicker
+  },
+  data: function() {
+    return {
+      injectMetas:"",
+      title: "",
+      username: "",
+      depart: "",
+      applicaTime: "",
+      chooseDname: "",
+      type: "zhuzi", //类型
+      palnMonth: "",
+      monthList: [],
+
+      zxbm: "",
+      sqtime: "",
+      sxtime: "",
+      sxxtime: "", //增资上线时间
+      sqzxtime: "",
+      sqzxxtime: "", //增资申请时间
+      sqtime: {
+        time: ""
+      },
+      sxtime: {
+        time: ""
+      },
+      sxxtime: {
+        time: ""
+      },
+      sqzxtime: {
+        time: ""
+      },
+      sqzxxtime: {
+        time: ""
+      },
+      multiOption: {
+        type: "day",
+        week: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"],
+        month: [
+          "1月",
+          "2月",
+          "3月",
+          "4月",
+          "5月",
+          "6月",
+          "7月",
+          "8月",
+          "9月",
+          "10月",
+          "11月",
+          "12月"
+        ],
+        format: "YYYY-MM-DD",
+        inputStyle: {
+          display: "inline-block",
+          padding: "6px",
+          "line-height": "20px",
+          width: "160px",
+          "font-size": "16px",
+          border: "1px solid #ccc",
+          // "box-shadow": "0 1px 3px 0 rgba(0, 0, 0, 0.2)",
+          "border-radius": "2px",
+          color: "#5F5F5F",
+          margin: "0"
+        },
+        color: {
+          // 字体颜色
+          header: "#35acff", // 头部
+          headerText: "#fff" // 头部文案
+        },
+        buttons: {
+          // button 文案
+          clearTime: "清除",
+          ok: "确定",
+          cancel: "取消"
+        },
+        placeholder: "请选时间",
+        dismissible: true
+      },
+      limit: [
+        {
+          type: "weekday",
+          available: [1, 2, 3, 4, 5, 6, 0]
+        },
+        {
+          type: "fromto",
+          from: "2010-01-01",
+          to: "2520-01-01"
+        }
+      ]
+    };
+  },
+  created() {
+      this.injectMetas = JSON.parse(sessionStorage.getItem('userInfo'))
+  },
+  mounted() {
+    this.username = this.injectMetas.nickName;
+    this.cropid = this.injectMetas.corpId;
+    for (var i = 1; i < 13; i++) {
+      this.monthList.push({ key: i, value: i + "月" });
+    }
+
+    //  const self = this;
+    //             const getMismoney = {
+    //                 url:'http://112.124.108.219:7500/SIMUWebServerTest/ERPService/simuerp.asmx/GetKJDWYSZK',
+    //                 params: {
+    //                     KJDWID: '10000',
+    //                 }
+    //             }
+    //             console.log(getMismoney)
+    //             dingWISDK.getMis(getMismoney).then(function(response){
+
+    //                 console.log(response)
+
+    //             }).catch(function(error){
+    //                 alert('获取userid error ：' + JSON.stringify(error));
+    //             });
+  },
+
+  methods: {
+    //选择部门
+    chooseD() {
+      var _this = this;
+      dd.biz.contact.departmentsPicker({
+        title: "选择部门", //标题
+        corpId: this.cropid, //企业的corpId
+        multiple: false, //是否多选
+        limitTips: "超出了", //超过限定人数返回提示
+        maxDepartments: 100, //最大选择部门数量
+        appId: "", //微应用的Id
+        onSuccess: function(result) {
+          const departments = result.departments;
+          _this.chooseDname = departments[0].name;
+        },
+        onFail: function(err) {
+          _this.ddAlert(err);
+        }
+      });
+    },
+    //上传文件
+    uploadFile() {
+      var _this = this;
+      dd.biz.util.uploadImage({
+        compression: true, //(是否压缩，默认为true压缩)
+        multiple: false, //是否多选，默认false
+        max: 3, //最多可选个数
+        quality: 50, // 图片压缩质量,
+        resize: 50, // 图片缩放率
+        stickers: {
+          // 水印信息
+          time: "08:35",
+          dateWeather: "2016.05.06 周六·晴转多云 16℃",
+          username: "王晓",
+          address: "西湖·杭州"
+        },
+        onSuccess: function(result) {
+          //onSuccess将在图片上传成功之后调用
+          /*
+        [
+          'http://gtms03.alicdn.com/tps/i3/TB1VF6uGFXXXXalaXXXmh5R_VXX-237-236.png'
+        ]
+        */
+        },
+        onFail: function(err) {}
+      });
+    },
+    //提交
+    submit() {
+      var _this = this;
+      var lis = document.getElementsByClassName("reValid");
+      for (var i = 0; i < lis.length; i++) {
+        let inputV = lis[i].getElementsByClassName("mint-field-core");
+        if (!inputV[0].value) {
+          _this.ddAlert(inputV[0].placeholder + "必填");
+          break;
+        }
+      }
+    },
+    ddAlert(msg) {
+      dd.device.notification.alert({
+        message: msg,
+        title: "提示", //可传空
+        buttonName: "确定",
+        onSuccess: function() {
+          //onSuccess将在点击button之后回调
+          /*回调*/
+        },
+        onFail: function(err) {}
+      });
+    }
+  }
+};
+</script>
+
+<style>
+@media screen and (min-width: 600px) {
+  .mint-cell .mint-cell-title {
+    width: 180px !important;
+  }
+}
+input {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  background: transparent !important;
+  appearance: button;
+  　-moz-appearance: button; /* Firefox */
+  　-webkit-appearance: button; /* Safari 和 Chrome */
+}
+select {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  background: transparent !important;
+}
+.form_zhuzi {
+  margin-top: 10px;
+}
+select {
+  border-radius: 2px;
+  display: block;
+  width: 100%;
+  padding: 3px;
+  font-size: 1.0625rem;
+  line-height: normal;
+  color: #222;
+
+  border: 1px solid #ccc;
+  padding-right: 1.625rem;
+}
+.mint-cell .mint-cell-value {
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  color: inherit;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+.mint-cell .mint-cell-title {
+  width: 105px;
+  -webkit-box-flex: 0;
+  -ms-flex: none;
+  flex: none;
+}
+
+.page-part {
+  margin-top: 10px;
+}
+.page-part h3 {
+  font-weight: 400;
+  padding-left: 10px;
+}
+</style>

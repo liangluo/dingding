@@ -1,0 +1,49 @@
+import Vue from "vue";
+import Router from "vue-router";
+import Home from "./pages/home/index.vue";
+import injection from "./pages/home/components/injection.vue";
+import account from "./pages/home/components/account.vue";
+import search from "./pages/home/components/search.vue";
+import searchcus from "./pages/home/components/searchCus.vue";
+Vue.use(Router);
+
+export default new Router({
+  mode: "history",
+  // base: process.env.BASE_URL,
+  routes: [
+    {
+      path: "/",
+      name: "home",
+      component: Home
+    },
+    {
+      path: "/injection",
+      name: "injection",
+      component: injection,
+      meta: {
+        keepAlive: true // 需要被缓存
+    }
+    },
+    {
+      path: "/account",
+      name: "account",
+      component: account,
+      meta: {
+        keepAlive: true // 需要被缓存
+      }
+    },
+    {
+      path: "/search",
+      name: "search",
+      component: search,
+     
+    },
+    {
+      path: "/searchcus",
+      name: "searchcus",
+      component: searchcus,
+     
+    }
+  ],
+
+});
