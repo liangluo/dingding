@@ -59,4 +59,4 @@ npm run build
 	
 	
 ## 项目截图 ##	
-![Image text](https://raw.githubusercontent.com/shiyongjason/paltweb/master/screenshots/wms1.png)	
+![Image text](https://github.com/shiyongjason/dingding/blob/master/screenshots/dingding.png)	
